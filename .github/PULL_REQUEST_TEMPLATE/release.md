@@ -20,21 +20,23 @@
   List every commit that is part of this release PR.
   Format each item as:
 
-    - `<short-sha>` commit message ([commit message #NN](https://github.com/Moistbobo/sos-world-dashboard/pull/NN))
+    `<short-sha>` commit message
+    `<short-sha>` commit message ([commit message #NN](https://github.com/Moistbobo/sos-world-dashboard/pull/NN))
 
   Example:
 
-    - `7cc15f4` chore: add scripts, move docs
-    - `a5f7395` feat(api): add origin and IP allowlisting for API endpoints ([feat(api): add origin and IP allowlisting for API endpoints #109](https://github.com/Moistbobo/sos-world-dashboard/pull/109))
+    7cc15f4 chore: add scripts, move docs
+    ff5dd6d chore: make eslint ignore local backup folder
+    cca1fe7 chore: backup scripts and docs reorganization ([chore: backup scripts and docs reorganization #108](https://github.com/Moistbobo/sos-world-dashboard/pull/108))
 
   Tip: generate the short-SHA/message list with:
 
-    git log --reverse --pretty=format:"- \`%h\` %s" <target-branch>..<source-branch>
+    git log --reverse --pretty=format:"%h %s" <target-branch>..<source-branch>
 -->
 
-- `<short-sha>` commit message
-- `<short-sha>` commit message ([commit message #NN](https://github.com/Moistbobo/sos-world-dashboard/pull/NN))
-- `<short-sha>` commit message ([commit message #NN](https://github.com/Moistbobo/sos-world-dashboard/pull/NN))
+`<short-sha>` commit message
+`<short-sha>` commit message
+`<short-sha>` commit message ([commit message #NN](https://github.com/Moistbobo/sos-world-dashboard/pull/NN))
 
 ## Verification checklist
 
