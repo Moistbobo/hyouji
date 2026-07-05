@@ -3,7 +3,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/hyouji/' : '/',
-  plugins: [react(), tailwindcss()],
-}))
+export default defineConfig(({ command }) => {
+  const base =
+    command === 'build' && process.env.GITHUB_PAGES === 'true'
+      ? '/hyouji/'
+      : '/'
+
+  return {
+    base,
+    plugins: [react(), tailwindcss()],
+  }
+})
