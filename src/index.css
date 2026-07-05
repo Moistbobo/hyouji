@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-surface-2: #21262d;
+  --color-border: #30363d;
+  --color-text: #c9d1d9;
+  --color-text-muted: #8b949e;
+  --color-accent: #58a6ff;
+  --color-accent-hover: #79c0ff;
+  --color-error: #f85149;
+  --color-info: #3fb950;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.jp {
+  color: var(--color-accent);
+  font-weight: 400;
+}
+
+iframe {
+  border: none;
+  display: block;
+}
+
+.ui-toggle {
+  animation: ui-toggle-fade 0.5s ease 5s forwards;
+}
+
+.ui-toggle:hover,
+.ui-toggle:focus-visible {
+  animation: none;
+}
+
+@keyframes ui-toggle-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+.app.preview-only .preview {
+  flex: 1;
+}
+
+.app.preview-only iframe {
+  height: 100vh;
+  min-height: 100vh;
+}
