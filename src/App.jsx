@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   extractGistId,
   fetchGist,
@@ -38,15 +38,14 @@ export default function App() {
     setPreviewContent(content);
   }, []);
 
-  const handleSubmit = useCallback(async (event) => {
-    event.preventDefault();
+  const loadGist = useCallback(async (inputUrl) => {
     setError(null);
     setInfo(null);
     setFiles([]);
     setSelectedFile(null);
     setPreviewContent('');
 
-    const gistId = extractGistId(url);
+    const gistId = extractGistId(inputUrl);
     if (!gistId) {
       setError('Please enter a valid gist.github.com URL or a gist ID.');
       return;
@@ -76,7 +75,30 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [url, loadFile]);
+  }, [loadFile]);
+
+  const handleSubmit = useCallback(async (event) => {
+    event.preventDefault();
+    await loadGist(url);
+  }, [url, loadGist]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const pastedUrl = searchParams.get('gist');
+
+    if (pastedUrl) {
+      const decoded = decodeURIComponent(pastedUrl);
+      setUrl(decoded);
+      loadGist(decoded);
+      return;
+    }
+
+    if (!searchParams.has('gist')) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('gist', '');
+      window.history.replaceState(null, '', newUrl);
+    }
+  }, [loadGist]);
 
   const loadFileClick = useCallback((file) => {
     setError(null);
