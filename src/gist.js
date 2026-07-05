@@ -1,11 +1,12 @@
 const GIST_URL_RE = /^https?:\/\/gist\.github\.com\/[^/]+\/([a-f0-9]+)(?:\/raw\/?)?(?:\?.*)?$/i;
+const GIST_RAW_URL_RE = /^https?:\/\/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\b/i;
 const GIST_ID_RE = /^[a-f0-9]+$/i;
 
 export function extractGistId(input) {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const match = trimmed.match(GIST_URL_RE);
+  const match = trimmed.match(GIST_URL_RE) || trimmed.match(GIST_RAW_URL_RE);
   if (match) return match[1];
 
   if (GIST_ID_RE.test(trimmed) && trimmed.length >= 20) return trimmed;
