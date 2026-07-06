@@ -147,11 +147,11 @@ export default function App() {
             Gist URL
           </label>
           <input
-            type="url"
+            type="text"
             id="gist-url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://gist.github.com/username/abc123..."
+            placeholder="https://gist.github.com/username/abc123... or username/hash"
             required
             className="min-w-[240px] flex-1 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-base text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
