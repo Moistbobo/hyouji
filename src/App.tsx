@@ -172,6 +172,17 @@ export default function App() {
           >
             {loading ? 'Loading…' : 'Load Gist'}
           </button>
+          <label className="flex w-full items-center gap-2 pt-1 text-xs text-text-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={allowScripts}
+              onChange={handleScriptToggle}
+              className="accent-amber-500"
+            />
+            <span>
+              Allow scripts — enables interactive demos but lets the gist execute arbitrary code in a sandboxed environment. Only enable for gists you trust.
+            </span>
+          </label>
         </form>
 
         {showUi && error && (
@@ -229,19 +240,6 @@ export default function App() {
               <div className="bg-amber-900/20 border-b border-amber-700/30 px-4 py-2 text-xs text-amber-300">
                 This HTML is untrusted. JavaScript runs in a sandboxed iframe.
               </div>
-            )}
-            {showUi && (
-              <label className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-2 text-xs text-text-muted cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={allowScripts}
-                  onChange={handleScriptToggle}
-                  className="accent-amber-500"
-                />
-                <span>
-                  Allow scripts — enables interactive demos but lets the gist execute arbitrary code in a sandboxed environment. Only enable for gists you trust.
-                </span>
-              </label>
             )}
             <iframe
               title={selectedFile.filename}
