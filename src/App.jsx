@@ -117,9 +117,6 @@ export default function App() {
             hyouji <span className="jp">表示</span>
           </h1>
           <p className="mt-2 text-text-muted">Preview HTML files stored in GitHub Gists</p>
-          <p className="mt-1 text-xs text-text-muted">
-            Usage: <code className="rounded bg-white/10 px-1 py-0.5">https://www.hyouji.moe/?gist=&lt;url to your gist&gt;</code>
-          </p>
         </header>
       )}
 
@@ -229,6 +226,9 @@ export default function App() {
       {showUi && (
         <footer className="mx-auto mt-12 max-w-[1100px] border-t border-border px-6 py-6 text-center text-xs text-text-muted">
           <p>hyouji loads HTML from public GitHub Gists and renders it in a sandboxed iframe.</p>
+          <p className="mt-1">
+            Usage: <code className="rounded bg-white/10 px-1 py-0.5">https://www.hyouji.moe/?gist=&lt;url to your gist&gt;</code>
+          </p>
         </footer>
       )}
     </div>
