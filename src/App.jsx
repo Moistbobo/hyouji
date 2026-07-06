@@ -117,6 +117,9 @@ export default function App() {
             hyouji <span className="jp">表示</span>
           </h1>
           <p className="mt-2 text-text-muted">Preview HTML files stored in GitHub Gists</p>
+          <p className="mt-1 text-xs text-text-muted">
+            Usage: <code className="rounded bg-white/10 px-1 py-0.5">https://www.hyouji.moe/?gist=&lt;url to your gist&gt;</code>
+          </p>
         </header>
       )}
 
