@@ -37,12 +37,8 @@ export function extractGistId(input: string): string | null {
   return null;
 }
 
-export async function fetchGist(gistId: string, token?: string): Promise<Gist> {
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+export async function fetchGist(gistId: string): Promise<Gist> {
+  const response = await fetch(`https://api.github.com/gists/${gistId}`);
   if (!response.ok) {
     const body = await response.json().catch(() => ({})) as { message?: string };
     throw new Error(body.message || `GitHub API returned ${response.status}`);
