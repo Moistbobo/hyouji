@@ -15,6 +15,17 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState<GistFile | null>(null);
   const [previewContent, setPreviewContent] = useState('');
   const [uiVisible, setUiVisible] = useState(true);
+  const [allowScripts, setAllowScripts] = useState(
+    () => localStorage.getItem('hyouji-allow-scripts') === 'true'
+  );
+
+  const handleScriptToggle = useCallback(() => {
+    setAllowScripts((prev) => {
+      const next = !prev;
+      localStorage.setItem('hyouji-allow-scripts', String(next));
+      return next;
+    });
+  }, []);
 
   const loadFile = useCallback(async (file: GistFile) => {
     setSelectedFile(file);
@@ -219,10 +230,23 @@ export default function App() {
                 This HTML is untrusted. JavaScript runs in a sandboxed iframe.
               </div>
             )}
+            {showUi && (
+              <label className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-2 text-xs text-text-muted cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={allowScripts}
+                  onChange={handleScriptToggle}
+                  className="accent-amber-500"
+                />
+                <span>
+                  Allow scripts — enables interactive demos but lets the gist execute arbitrary code in a sandboxed environment. Only enable for gists you trust.
+                </span>
+              </label>
+            )}
             <iframe
               title={selectedFile.filename}
               srcDoc={previewContent}
-              sandbox="allow-scripts"
+              sandbox={allowScripts ? 'allow-scripts' : ''}
               referrerPolicy="no-referrer"
               className="h-[70vh] min-h-[400px] w-full bg-white"
             />
