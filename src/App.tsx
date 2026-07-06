@@ -1,26 +1,27 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, FormEvent } from 'react';
 import {
   extractGistId,
   fetchGist,
   findHtmlFiles,
   escapeHtml,
-} from './gist';
+  GistFile,
+} from './gist.ts';
 
 export default function App() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [info, setInfo] = useState(null);
-  const [files, setFiles] = useState([]);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [files, setFiles] = useState<GistFile[]>([]);
+  const [selectedFile, setSelectedFile] = useState<GistFile | null>(null);
   const [previewContent, setPreviewContent] = useState('');
   const [uiVisible, setUiVisible] = useState(true);
 
-  const loadFile = useCallback(async (file) => {
+  const loadFile = useCallback(async (file: GistFile) => {
     setSelectedFile(file);
     setUiVisible(false);
 
-    let content;
+    let content: string;
     if (file.content != null) {
       content = file.content;
     } else if (file.raw_url) {
@@ -38,7 +39,7 @@ export default function App() {
     setPreviewContent(content);
   }, []);
 
-  const loadGist = useCallback(async (inputUrl) => {
+  const loadGist = useCallback(async (inputUrl: string) => {
     setError(null);
     setInfo(null);
     setFiles([]);
@@ -71,13 +72,13 @@ export default function App() {
       );
       await loadFile(htmlFiles[0]);
     } catch (err) {
-      setError(`Failed to load gist: ${escapeHtml(err.message)}`);
+      setError(`Failed to load gist: ${escapeHtml((err as Error).message)}`);
     } finally {
       setLoading(false);
     }
   }, [loadFile]);
 
-  const handleSubmit = useCallback(async (event) => {
+  const handleSubmit = useCallback(async (event: FormEvent) => {
     event.preventDefault();
     await loadGist(url);
   }, [url, loadGist]);
@@ -100,7 +101,7 @@ export default function App() {
     }
   }, [loadGist]);
 
-  const loadFileClick = useCallback((file) => {
+  const loadFileClick = useCallback((file: GistFile) => {
     setError(null);
     loadFile(file);
   }, [loadFile]);
