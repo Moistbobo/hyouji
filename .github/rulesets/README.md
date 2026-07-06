@@ -1,6 +1,6 @@
 # Repository Rulesets
 
-These JSON files are the source-of-truth definitions for the repository's branch rulesets. They are applied to GitHub via the REST API (or `scripts/apply-rulesets.sh`).
+These JSON files are the source-of-truth definitions for the repository's branch rulesets. They are applied to GitHub via the REST API.
 
 | Ruleset | Branches | Merge method allowed |
 |---|---|---|
