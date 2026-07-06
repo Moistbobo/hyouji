@@ -227,7 +227,7 @@ export default function App() {
         <footer className="mx-auto mt-12 max-w-[1100px] border-t border-border px-6 py-6 text-center text-xs text-text-muted">
           <p>hyouji loads HTML from public GitHub Gists and renders it in a sandboxed iframe.</p>
           <p className="mt-1">
-            Usage: <code className="rounded bg-white/10 px-1 py-0.5">https://www.hyouji.moe/?gist=&lt;url to your gist&gt;</code>
+            Usage: <code className="rounded bg-white/10 px-1 py-0.5">{window.location.origin}/?gist=&lt;url to your gist&gt;</code>
           </p>
         </footer>
       )}
