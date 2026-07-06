@@ -1,5 +1,5 @@
-const GIST_URL_RE = /^https?:\/\/gist\.github\.com\/[^/]+\/([a-f0-9]+)(?:\/raw\/?)?(?:\?.*)?$/i;
-const GIST_RAW_URL_RE = /^https?:\/\/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\b/i;
+const GIST_URL_RE = /^https:\/\/gist\.github\.com\/[^/]+\/([a-f0-9]+)(?:\/raw\/?)?(?:\?.*)?$/i;
+const GIST_RAW_URL_RE = /^https:\/\/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\b/i;
 const GIST_ID_RE = /^[a-f0-9]+$/i;
 
 export function extractGistId(input) {
@@ -14,8 +14,12 @@ export function extractGistId(input) {
   return null;
 }
 
-export async function fetchGist(gistId) {
-  const response = await fetch(`https://api.github.com/gists/${gistId}`);
+export async function fetchGist(gistId, token) {
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.message || `GitHub API returned ${response.status}`);

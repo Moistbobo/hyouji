@@ -3,7 +3,6 @@ import {
   extractGistId,
   fetchGist,
   findHtmlFiles,
-  escapeHtml,
 } from './gist';
 
 export default function App() {
@@ -26,7 +25,7 @@ export default function App() {
     } else if (file.raw_url) {
       const response = await fetch(file.raw_url);
       if (!response.ok) {
-        setError(`Could not fetch ${escapeHtml(file.filename)}`);
+        setError(`Could not fetch ${file.filename}`);
         return;
       }
       content = await response.text();
@@ -59,7 +58,7 @@ export default function App() {
       if (htmlFiles.length === 0) {
         const fileNames =
           Object.values(gist.files)
-            .map((f) => `<code>${escapeHtml(f.filename)}</code>`)
+            .map((f) => f.filename)
             .join(', ') || 'none';
         setError(`No HTML files found in this gist. Files: ${fileNames}.`);
         return;
@@ -67,11 +66,11 @@ export default function App() {
 
       setFiles(htmlFiles);
       setInfo(
-        `Loaded gist by ${escapeHtml(gist.owner?.login || 'unknown')} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
+        `Loaded gist by ${gist.owner?.login || 'unknown'} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
       );
       await loadFile(htmlFiles[0]);
     } catch (err) {
-      setError(`Failed to load gist: ${escapeHtml(err.message)}`);
+      setError(`Failed to load gist: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -167,15 +166,17 @@ export default function App() {
           <div
             className="message error mt-4 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error"
             role="alert"
-            dangerouslySetInnerHTML={{ __html: error }}
-          />
+          >
+            {error}
+          </div>
         )}
         {showUi && info && (
           <div
             className="message info mt-4 rounded-lg border border-info/40 bg-info/10 px-4 py-3 text-sm text-info"
             role="status"
-            dangerouslySetInnerHTML={{ __html: info }}
-          />
+          >
+            {info}
+          </div>
         )}
 
         {showUi && files.length > 0 && (
@@ -210,6 +211,11 @@ export default function App() {
                 <h2 className="m-0 text-sm font-semibold text-text-muted">
                   Preview: <code className="rounded bg-white/10 px-1.5 py-0.5 text-text">{selectedFile.filename}</code>
                 </h2>
+              </div>
+            )}
+            {showUi && (
+              <div className="bg-amber-900/20 border-b border-amber-700/30 px-4 py-2 text-xs text-amber-300">
+                This HTML is untrusted. JavaScript runs in a sandboxed iframe.
               </div>
             )}
             <iframe
