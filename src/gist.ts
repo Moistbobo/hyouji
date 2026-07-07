@@ -1,5 +1,5 @@
-const GIST_URL_RE = /^https?:\/\/gist\.github\.com\/[^/]+\/([a-f0-9]+)(?:\/raw\/?)?(?:\?.*)?$/i;
-const GIST_RAW_URL_RE = /^https?:\/\/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\b/i;
+const GIST_URL_RE = /^https:\/\/gist\.github\.com\/[^/]+\/([a-f0-9]+)(?:\/raw\/?)?(?:\?.*)?$/i;
+const GIST_RAW_URL_RE = /^https:\/\/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\b/i;
 const GIST_SHORTHAND_RE = /^([a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38})\/([a-f0-9]+)$/i;
 const GIST_ID_RE = /^[a-f0-9]+$/i;
 
@@ -52,13 +52,4 @@ export function findHtmlFiles(files: Record<string, GistFile>): GistFile[] {
       file.filename.toLowerCase().endsWith('.html') ||
       (file.type && file.type.toLowerCase() === 'text/html')
   );
-}
-
-export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }

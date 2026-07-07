@@ -3,7 +3,6 @@ import {
   extractGistId,
   fetchGist,
   findHtmlFiles,
-  escapeHtml,
   GistFile,
 } from './gist.ts';
 
@@ -16,6 +15,17 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState<GistFile | null>(null);
   const [previewContent, setPreviewContent] = useState('');
   const [uiVisible, setUiVisible] = useState(true);
+  const [allowScripts, setAllowScripts] = useState(
+    () => localStorage.getItem('hyouji-allow-scripts') === 'true'
+  );
+
+  const handleScriptToggle = useCallback(() => {
+    setAllowScripts((prev) => {
+      const next = !prev;
+      localStorage.setItem('hyouji-allow-scripts', String(next));
+      return next;
+    });
+  }, []);
 
   const loadFile = useCallback(async (file: GistFile) => {
     setSelectedFile(file);
@@ -27,7 +37,7 @@ export default function App() {
     } else if (file.raw_url) {
       const response = await fetch(file.raw_url);
       if (!response.ok) {
-        setError(`Could not fetch ${escapeHtml(file.filename)}`);
+        setError(`Could not fetch ${file.filename}`);
         return;
       }
       content = await response.text();
@@ -60,7 +70,7 @@ export default function App() {
       if (htmlFiles.length === 0) {
         const fileNames =
           Object.values(gist.files)
-            .map((f) => `<code>${escapeHtml(f.filename)}</code>`)
+            .map((f) => f.filename)
             .join(', ') || 'none';
         setError(`No HTML files found in this gist. Files: ${fileNames}.`);
         return;
@@ -68,11 +78,11 @@ export default function App() {
 
       setFiles(htmlFiles);
       setInfo(
-        `Loaded gist by ${escapeHtml(gist.owner?.login || 'unknown')} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
+        `Loaded gist by ${gist.owner?.login || 'unknown'} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
       );
       await loadFile(htmlFiles[0]);
     } catch (err) {
-      setError(`Failed to load gist: ${escapeHtml((err as Error).message)}`);
+      setError(`Failed to load gist: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -162,21 +172,34 @@ export default function App() {
           >
             {loading ? 'Loading…' : 'Load Gist'}
           </button>
+          <label className="flex w-full items-center gap-2 pt-1 text-xs text-text-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={allowScripts}
+              onChange={handleScriptToggle}
+              className="accent-amber-500"
+            />
+            <span>
+              Allow scripts — enables interactive demos but lets the gist execute arbitrary code in a sandboxed environment. Only enable for gists you trust.
+            </span>
+          </label>
         </form>
 
         {showUi && error && (
           <div
             className="message error mt-4 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error"
             role="alert"
-            dangerouslySetInnerHTML={{ __html: error }}
-          />
+          >
+            {error}
+          </div>
         )}
         {showUi && info && (
           <div
             className="message info mt-4 rounded-lg border border-info/40 bg-info/10 px-4 py-3 text-sm text-info"
             role="status"
-            dangerouslySetInnerHTML={{ __html: info }}
-          />
+          >
+            {info}
+          </div>
         )}
 
         {showUi && files.length > 0 && (
@@ -216,7 +239,7 @@ export default function App() {
             <iframe
               title={selectedFile.filename}
               srcDoc={previewContent}
-              sandbox="allow-scripts"
+              sandbox={allowScripts ? 'allow-scripts' : ''}
               referrerPolicy="no-referrer"
               className="h-[70vh] min-h-[400px] w-full bg-white"
             />
