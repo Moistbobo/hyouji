@@ -236,11 +236,6 @@ export default function App() {
                 </h2>
               </div>
             )}
-            {showUi && (
-              <div className="bg-amber-900/20 border-b border-amber-700/30 px-4 py-2 text-xs text-amber-300">
-                This HTML is untrusted. JavaScript runs in a sandboxed iframe.
-              </div>
-            )}
             <iframe
               title={selectedFile.filename}
               srcDoc={previewContent}
