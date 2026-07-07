@@ -1,32 +1,43 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, FormEvent } from 'react';
 import {
   extractGistId,
   fetchGist,
   findHtmlFiles,
-  escapeHtml,
-} from './gist';
+  GistFile,
+} from './gist.ts';
 
 export default function App() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [info, setInfo] = useState(null);
-  const [files, setFiles] = useState([]);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [files, setFiles] = useState<GistFile[]>([]);
+  const [selectedFile, setSelectedFile] = useState<GistFile | null>(null);
   const [previewContent, setPreviewContent] = useState('');
   const [uiVisible, setUiVisible] = useState(true);
+  const [allowScripts, setAllowScripts] = useState(
+    () => localStorage.getItem('hyouji-allow-scripts') === 'true'
+  );
 
-  const loadFile = useCallback(async (file) => {
+  const handleScriptToggle = useCallback(() => {
+    setAllowScripts((prev) => {
+      const next = !prev;
+      localStorage.setItem('hyouji-allow-scripts', String(next));
+      return next;
+    });
+  }, []);
+
+  const loadFile = useCallback(async (file: GistFile) => {
     setSelectedFile(file);
     setUiVisible(false);
 
-    let content;
+    let content: string;
     if (file.content != null) {
       content = file.content;
     } else if (file.raw_url) {
       const response = await fetch(file.raw_url);
       if (!response.ok) {
-        setError(`Could not fetch ${escapeHtml(file.filename)}`);
+        setError(`Could not fetch ${file.filename}`);
         return;
       }
       content = await response.text();
@@ -38,7 +49,7 @@ export default function App() {
     setPreviewContent(content);
   }, []);
 
-  const loadGist = useCallback(async (inputUrl) => {
+  const loadGist = useCallback(async (inputUrl: string) => {
     setError(null);
     setInfo(null);
     setFiles([]);
@@ -59,7 +70,7 @@ export default function App() {
       if (htmlFiles.length === 0) {
         const fileNames =
           Object.values(gist.files)
-            .map((f) => `<code>${escapeHtml(f.filename)}</code>`)
+            .map((f) => f.filename)
             .join(', ') || 'none';
         setError(`No HTML files found in this gist. Files: ${fileNames}.`);
         return;
@@ -67,17 +78,17 @@ export default function App() {
 
       setFiles(htmlFiles);
       setInfo(
-        `Loaded gist by ${escapeHtml(gist.owner?.login || 'unknown')} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
+        `Loaded gist by ${gist.owner?.login || 'unknown'} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
       );
       await loadFile(htmlFiles[0]);
     } catch (err) {
-      setError(`Failed to load gist: ${escapeHtml(err.message)}`);
+      setError(`Failed to load gist: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
   }, [loadFile]);
 
-  const handleSubmit = useCallback(async (event) => {
+  const handleSubmit = useCallback(async (event: FormEvent) => {
     event.preventDefault();
     await loadGist(url);
   }, [url, loadGist]);
@@ -100,7 +111,7 @@ export default function App() {
     }
   }, [loadGist]);
 
-  const loadFileClick = useCallback((file) => {
+  const loadFileClick = useCallback((file: GistFile) => {
     setError(null);
     loadFile(file);
   }, [loadFile]);
@@ -143,14 +154,14 @@ export default function App() {
           style={{ display: showUi ? undefined : 'none' }}
         >
           <label htmlFor="gist-url" className="w-full font-semibold text-sm">
-            Gist URL
+            Gist ID
           </label>
           <input
-            type="url"
+            type="text"
             id="gist-url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://gist.github.com/username/abc123..."
+            placeholder="Gist ID, gist.github.com/username/abc123..., or username/hash"
             required
             className="min-w-[240px] flex-1 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-base text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
@@ -161,21 +172,34 @@ export default function App() {
           >
             {loading ? 'Loading…' : 'Load Gist'}
           </button>
+          <label className="flex w-full items-center gap-2 pt-1 text-xs text-text-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={allowScripts}
+              onChange={handleScriptToggle}
+              className="accent-amber-500"
+            />
+            <span>
+              Allow scripts — enables interactive demos but lets the gist execute arbitrary code in a sandboxed environment. Only enable for gists you trust.
+            </span>
+          </label>
         </form>
 
         {showUi && error && (
           <div
             className="message error mt-4 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error"
             role="alert"
-            dangerouslySetInnerHTML={{ __html: error }}
-          />
+          >
+            {error}
+          </div>
         )}
         {showUi && info && (
           <div
             className="message info mt-4 rounded-lg border border-info/40 bg-info/10 px-4 py-3 text-sm text-info"
             role="status"
-            dangerouslySetInnerHTML={{ __html: info }}
-          />
+          >
+            {info}
+          </div>
         )}
 
         {showUi && files.length > 0 && (
@@ -215,7 +239,7 @@ export default function App() {
             <iframe
               title={selectedFile.filename}
               srcDoc={previewContent}
-              sandbox="allow-scripts"
+              sandbox={allowScripts ? 'allow-scripts' : ''}
               referrerPolicy="no-referrer"
               className="h-[70vh] min-h-[400px] w-full bg-white"
             />

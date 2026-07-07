@@ -5,10 +5,7 @@
   "bypass_actors": [],
   "conditions": {
     "ref_name": {
-      "include": [
-        "refs/heads/testnet",
-        "refs/heads/production"
-      ],
+      "include": ["refs/heads/testnet", "refs/heads/production"],
       "exclude": []
     }
   },
