@@ -2,12 +2,185 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>hyouji</title>
+    <title>hyouji — Preview HTML from GitHub Gists</title>
+    <meta
+      name="description"
+      content="hyouji renders HTML files from GitHub Gists in a sandboxed iframe directly in your browser. Share a gist URL via ?gist=... to preview it instantly."
+    />
+    <meta
+      name="keywords"
+      content="hyouji, github gist, html preview, sandboxed iframe, web preview, code sharing"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#58a6ff" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://www.hyouji.moe" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="hyouji — Preview HTML from GitHub Gists" />
+    <meta
+      property="og:description"
+      content="Render HTML files from GitHub Gists in a sandboxed iframe. Pass a gist URL with ?gist=... to preview it instantly."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.hyouji.moe" />
+    <meta property="og:site_name" content="hyouji" />
+    <meta property="og:image" content="https://www.hyouji.moe/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="表示 — hyouji" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="hyouji — Preview HTML from GitHub Gists" />
+    <meta
+      name="twitter:description"
+      content="Render HTML files from GitHub Gists in a sandboxed iframe. Pass a gist URL with ?gist=... to preview it instantly."
+    />
+    <meta name="twitter:image" content="https://www.hyouji.moe/og-image.png" />
+    <meta name="twitter:image:alt" content="表示 — hyouji" />
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "hyouji",
+        "description": "hyouji renders HTML files from GitHub Gists in a sandboxed iframe directly in your browser. Share a gist URL via ?gist=... to preview it instantly.",
+        "url": "https://www.hyouji.moe",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "hyouji",
+          "url": "https://www.hyouji.moe"
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <noscript>
+      <style>
+        .noscript-banner {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          background: #f85149;
+          color: #fff;
+          padding: 1rem;
+          text-align: center;
+          font-size: 0.95rem;
+        }
+      </style>
+      <div class="noscript-banner">
+        JavaScript is required to load and preview gists. Please enable JavaScript to use hyouji.
+      </div>
+    </noscript>
+
+    <div id="root">
+      <!-- Static fallback content for crawlers and users without JavaScript -->
+      <style>
+        #hyouji-fallback {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background: #0d1117;
+          color: #c9d1d9;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          padding: 2rem;
+          box-sizing: border-box;
+          text-align: center;
+        }
+        #hyouji-fallback h1 {
+          margin: 0;
+          font-size: 2.5rem;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: #c9d1d9;
+        }
+        #hyouji-fallback .jp {
+          color: #58a6ff;
+          font-weight: 400;
+        }
+        #hyouji-fallback .tagline {
+          margin-top: 0.75rem;
+          color: #8b949e;
+          font-size: 1.1rem;
+        }
+        #hyouji-fallback .card {
+          margin-top: 2rem;
+          max-width: 680px;
+          width: 100%;
+          border: 1px solid #30363d;
+          background: #161b22;
+          border-radius: 0.75rem;
+          padding: 1.5rem;
+          text-align: left;
+        }
+        #hyouji-fallback .card h2 {
+          margin: 0 0 0.75rem;
+          font-size: 1.1rem;
+          color: #c9d1d9;
+        }
+        #hyouji-fallback code {
+          display: block;
+          background: #21262d;
+          border: 1px solid #30363d;
+          border-radius: 0.5rem;
+          padding: 0.75rem 1rem;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.9rem;
+          color: #c9d1d9;
+          word-break: break-all;
+        }
+        #hyouji-fallback ul {
+          margin: 0;
+          padding-left: 1.25rem;
+          color: #8b949e;
+          line-height: 1.6;
+        }
+        #hyouji-fallback li + li {
+          margin-top: 0.35rem;
+        }
+        #hyouji-fallback .footer {
+          margin-top: auto;
+          padding-top: 2rem;
+          font-size: 0.8rem;
+          color: #8b949e;
+        }
+      </style>
+      <div id="hyouji-fallback">
+        <header>
+          <h1>hyouji <span class="jp">表示</span></h1>
+          <p class="tagline">Preview HTML files stored in GitHub Gists</p>
+        </header>
+
+        <div class="card">
+          <h2>Usage</h2>
+          <code>https://www.hyouji.moe/?gist=&lt;url to your gist&gt;</code>
+        </div>
+
+        <div class="card">
+          <h2>Features</h2>
+          <ul>
+            <li>Load any public GitHub Gist containing HTML files.</li>
+            <li>Render the HTML in a sandboxed iframe in your browser.</li>
+            <li>Toggle script execution for interactive demos.</li>
+            <li>Share previews by copying a single URL.</li>
+          </ul>
+        </div>
+
+        <p class="footer">
+          hyouji loads HTML from public GitHub Gists and renders it in a sandboxed iframe.
+        </p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

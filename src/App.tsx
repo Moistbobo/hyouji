@@ -6,6 +6,8 @@ import {
   GistFile,
 } from './gist.ts';
 
+const DEFAULT_TITLE = 'hyouji — Preview HTML from GitHub Gists';
+
 export default function App() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,12 @@ export default function App() {
     () => localStorage.getItem('hyouji-allow-scripts') === 'true'
   );
 
+  useEffect(() => {
+    if (!selectedFile) {
+      document.title = DEFAULT_TITLE;
+    }
+  }, [selectedFile]);
+
   const handleScriptToggle = useCallback(() => {
     setAllowScripts((prev) => {
       const next = !prev;
@@ -27,9 +35,12 @@ export default function App() {
     });
   }, []);
 
-  const loadFile = useCallback(async (file: GistFile) => {
+  const loadFile = useCallback(async (file: GistFile, ownerLogin?: string) => {
     setSelectedFile(file);
     setUiVisible(false);
+
+    const owner = ownerLogin || 'unknown';
+    document.title = `hyouji — ${file.filename} · ${owner}`;
 
     let content: string;
     if (file.content != null) {
@@ -77,10 +88,11 @@ export default function App() {
       }
 
       setFiles(htmlFiles);
+      const ownerLogin = gist.owner?.login || 'unknown';
       setInfo(
-        `Loaded gist by ${gist.owner?.login || 'unknown'} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
+        `Loaded gist by ${ownerLogin} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
       );
-      await loadFile(htmlFiles[0]);
+      await loadFile(htmlFiles[0], ownerLogin);
     } catch (err) {
       setError(`Failed to load gist: ${(err as Error).message}`);
     } finally {
