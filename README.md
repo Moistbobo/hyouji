@@ -1,16 +1,39 @@
-# React + Vite
+# hyouji 表示
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Preview HTML files stored in public GitHub Gists in a sandboxed iframe — directly in your browser.
 
-Currently, two official plugins are available:
+The name comes from the Japanese word [表示](https://jisho.org/search/%E8%A1%A8%E7%A4%BA) (*hyouji*), meaning "display" or "show."
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## How it works
 
-## React Compiler
+hyouji is a fully client-side single-page application. There is no backend, no server, and no data storage — everything happens in your browser.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Gist fetching
 
-## Expanding the Oxlint configuration
+When you provide a gist URL or ID, hyouji parses it using `extractGistId()`, which accepts multiple input formats:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- Full gist URL: `https://gist.github.com/username/abc123`
+- Raw gist URL: `https://gist.githubusercontent.com/username/abc123/raw`
+- Shorthand: `username/abc123`
+- Bare ID: `abc123`
+
+It then calls the GitHub REST API (`GET /gists/{id}`) to retrieve the gist metadata — file list, owner, and raw content URLs. Only files with a `.html` extension or `text/html` MIME type are kept. When you select a file to preview, its content is fetched either from the API response body or from the file's `raw_url` endpoint.
+
+### Security
+
+Security is a core design concern. The preview is rendered inside an `<iframe>` with the `sandbox` attribute set to an empty string by default, which imposes the maximum set of restrictions:
+
+- No script execution
+- No form submission
+- No popups
+- No navigation
+- No same-origin access
+- No top-level navigation
+
+An optional "Allow scripts" toggle adds `allow-scripts` to the sandbox attribute, enabling JavaScript execution for interactive demos while still blocking forms, popups, and navigation. This preference is persisted in `localStorage`.
+
+Additional protections include:
+
+- `referrerPolicy="no-referrer"` prevents the iframe content from leaking the page URL
+- Fully client-side — gist content is fetched directly from GitHub by your browser and never touches a server
+- A React error boundary catches runtime errors gracefully without crashing the page
