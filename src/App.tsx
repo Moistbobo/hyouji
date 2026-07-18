@@ -5,6 +5,7 @@ import {
   findHtmlFiles,
   GistFile,
 } from './gist.ts';
+import { injectAnchorShim, removeAnchorShim } from './anchorShim.ts';
 
 const DEFAULT_TITLE = 'hyouji — Preview HTML from GitHub Gists';
 
@@ -57,8 +58,14 @@ export default function App() {
       return;
     }
 
+    if (allowScripts) {
+      content = injectAnchorShim(content);
+    } else {
+      content = removeAnchorShim(content);
+    }
+
     setPreviewContent(content);
-  }, []);
+  }, [allowScripts]);
 
   const loadGist = useCallback(async (inputUrl: string) => {
     setError(null);
