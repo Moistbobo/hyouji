@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect, FormEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, FormEvent } from 'react';
 import {
   extractGistId,
   fetchGist,
   findHtmlFiles,
   GistFile,
 } from './gist.ts';
+import { buildOutline, OutlineItem } from './outline.ts';
 
 const DEFAULT_TITLE = 'hyouji — Preview HTML from GitHub Gists';
 
@@ -16,10 +17,12 @@ export default function App() {
   const [files, setFiles] = useState<GistFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<GistFile | null>(null);
   const [previewContent, setPreviewContent] = useState('');
+  const [outline, setOutline] = useState<OutlineItem[]>([]);
   const [uiVisible, setUiVisible] = useState(true);
   const [allowScripts, setAllowScripts] = useState(
     () => localStorage.getItem('hyouji-allow-scripts') === 'true'
   );
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -58,6 +61,7 @@ export default function App() {
     }
 
     setPreviewContent(content);
+    setOutline(buildOutline(content));
   }, []);
 
   const loadGist = useCallback(async (inputUrl: string) => {
@@ -125,8 +129,21 @@ export default function App() {
 
   const loadFileClick = useCallback((file: GistFile) => {
     setError(null);
+    setOutline([]);
     loadFile(file);
   }, [loadFile]);
+
+  const handleOutlineClick = useCallback((id: string) => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow?.document?.getElementById) return;
+    const doc = iframe.contentWindow.document;
+    const target =
+      doc.getElementById(id) ??
+      doc.querySelector(`[name="${CSS.escape(id)}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
 
   const showUi = uiVisible || !selectedFile;
 
@@ -239,6 +256,26 @@ export default function App() {
           </section>
         )}
 
+        {showUi && selectedFile && outline.length > 0 && (
+          <section className="outline mt-8 rounded-lg border border-border bg-surface p-4 shadow-lg">
+            <h2 className="mb-3 text-lg font-semibold text-text-muted">Outline</h2>
+            <ul className="flex flex-col gap-1">
+              {outline.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="text-left text-sm text-text transition-colors hover:text-accent"
+                    style={{ paddingLeft: `${(item.level - 1) * 1}rem` }}
+                    onClick={() => handleOutlineClick(item.id)}
+                  >
+                    {item.text}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {selectedFile && (
           <section className="preview mt-8 overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
             {showUi && (
@@ -249,6 +286,7 @@ export default function App() {
               </div>
             )}
             <iframe
+              ref={iframeRef}
               title={selectedFile.filename}
               srcDoc={previewContent}
               sandbox={allowScripts ? 'allow-scripts' : ''}
