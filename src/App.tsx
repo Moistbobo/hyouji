@@ -1,10 +1,17 @@
-import { useState, useCallback, useEffect, FormEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, FormEvent } from 'react';
 import {
   extractGistId,
   fetchGist,
   findHtmlFiles,
   GistFile,
 } from './gist.ts';
+import {
+  buildStorageKey,
+  injectShim,
+  isGistStorageMessage,
+  readGistStorage,
+  writeGistStorage,
+} from './gistStorage.ts';
 
 const DEFAULT_TITLE = 'hyouji — Preview HTML from GitHub Gists';
 
@@ -20,6 +27,11 @@ export default function App() {
   const [allowScripts, setAllowScripts] = useState(
     () => localStorage.getItem('hyouji-allow-scripts') === 'true'
   );
+  const [allowStorage, setAllowStorage] = useState(
+    () => localStorage.getItem('hyouji-allow-storage') === 'true'
+  );
+  const [currentGistId, setCurrentGistId] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -35,30 +47,51 @@ export default function App() {
     });
   }, []);
 
-  const loadFile = useCallback(async (file: GistFile, ownerLogin?: string) => {
-    setSelectedFile(file);
-    setUiVisible(false);
+  const handleStorageToggle = useCallback(() => {
+    setAllowStorage((prev) => {
+      const next = !prev;
+      localStorage.setItem('hyouji-allow-storage', String(next));
+      return next;
+    });
+    setAllowScripts((prev) => {
+      if (prev) return prev;
+      localStorage.setItem('hyouji-allow-scripts', 'true');
+      return true;
+    });
+  }, []);
 
-    const owner = ownerLogin || 'unknown';
-    document.title = `hyouji — ${file.filename} · ${owner}`;
+  const loadFile = useCallback(
+    async (file: GistFile, gistId?: string, ownerLogin?: string) => {
+      setSelectedFile(file);
+      setUiVisible(false);
 
-    let content: string;
-    if (file.content != null) {
-      content = file.content;
-    } else if (file.raw_url) {
-      const response = await fetch(file.raw_url);
-      if (!response.ok) {
-        setError(`Could not fetch ${file.filename}`);
+      const owner = ownerLogin || 'unknown';
+      document.title = `hyouji — ${file.filename} · ${owner}`;
+
+      let content: string;
+      if (file.content != null) {
+        content = file.content;
+      } else if (file.raw_url) {
+        const response = await fetch(file.raw_url);
+        if (!response.ok) {
+          setError(`Could not fetch ${file.filename}`);
+          return;
+        }
+        content = await response.text();
+      } else {
+        setError('No content available for this file');
         return;
       }
-      content = await response.text();
-    } else {
-      setError('No content available for this file');
-      return;
-    }
 
-    setPreviewContent(content);
-  }, []);
+      if (gistId && allowScripts && allowStorage) {
+        const initialData = readGistStorage(gistId);
+        content = injectShim(content, gistId, initialData);
+      }
+
+      setPreviewContent(content);
+    },
+    [allowScripts, allowStorage]
+  );
 
   const loadGist = useCallback(async (inputUrl: string) => {
     setError(null);
@@ -89,10 +122,11 @@ export default function App() {
 
       setFiles(htmlFiles);
       const ownerLogin = gist.owner?.login || 'unknown';
+      setCurrentGistId(gist.id);
       setInfo(
         `Loaded gist by ${ownerLogin} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
       );
-      await loadFile(htmlFiles[0], ownerLogin);
+      await loadFile(htmlFiles[0], gist.id, ownerLogin);
     } catch (err) {
       setError(`Failed to load gist: ${(err as Error).message}`);
     } finally {
@@ -123,10 +157,35 @@ export default function App() {
     }
   }, [loadGist]);
 
-  const loadFileClick = useCallback((file: GistFile) => {
-    setError(null);
-    loadFile(file);
-  }, [loadFile]);
+  useEffect(() => {
+    if (!currentGistId) return;
+
+    const ns = buildStorageKey(currentGistId);
+
+    const handleMessage = (event: MessageEvent) => {
+      if (
+        !iframeRef.current ||
+        event.source !== iframeRef.current.contentWindow
+      ) {
+        return;
+      }
+      if (!isGistStorageMessage(event.data)) return;
+      if (event.data.ns !== ns) return;
+
+      writeGistStorage(currentGistId, event.data.data);
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [currentGistId]);
+
+  const loadFileClick = useCallback(
+    (file: GistFile) => {
+      setError(null);
+      loadFile(file, currentGistId || undefined);
+    },
+    [loadFile, currentGistId]
+  );
 
   const showUi = uiVisible || !selectedFile;
 
@@ -195,6 +254,29 @@ export default function App() {
               Allow scripts — enables interactive demos but lets the gist execute arbitrary code in a sandboxed environment. Only enable for gists you trust.
             </span>
           </label>
+          <label
+            className={`flex w-full items-center gap-2 text-xs cursor-pointer select-none ${
+              allowScripts
+                ? 'text-text-muted'
+                : 'text-text-muted/50 cursor-not-allowed'
+            }`}
+            title={
+              allowScripts
+                ? 'Inject an isolated localStorage shim so the gist can persist data per-gist.'
+                : 'Enable "Allow scripts" first to use isolated localStorage.'
+            }
+          >
+            <input
+              type="checkbox"
+              checked={allowStorage}
+              onChange={handleStorageToggle}
+              disabled={!allowScripts}
+              className="accent-amber-500 disabled:accent-amber-500/30"
+            />
+            <span>
+              Allow isolated localStorage — lets the gist use localStorage scoped to this gist via a Hyouji-managed shim. Requires "Allow scripts".
+            </span>
+          </label>
         </form>
 
         {showUi && error && (
@@ -249,6 +331,7 @@ export default function App() {
               </div>
             )}
             <iframe
+              ref={iframeRef}
               title={selectedFile.filename}
               srcDoc={previewContent}
               sandbox={allowScripts ? 'allow-scripts' : ''}
