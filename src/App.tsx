@@ -37,7 +37,6 @@ export default function App() {
 
   const loadFile = useCallback(async (file: GistFile, ownerLogin?: string) => {
     setSelectedFile(file);
-    setUiVisible(false);
 
     const owner = ownerLogin || 'unknown';
     document.title = `hyouji — ${file.filename} · ${owner}`;
@@ -242,10 +241,17 @@ export default function App() {
         {selectedFile && (
           <section className="preview mt-8 overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
             {showUi && (
-              <div className="preview-header border-b border-border bg-surface-2 px-4 py-3">
+              <div className="preview-header flex items-center justify-between gap-4 border-b border-border bg-surface-2 px-4 py-3">
                 <h2 className="m-0 text-sm font-semibold text-text-muted">
                   Preview: <code className="rounded bg-white/10 px-1.5 py-0.5 text-text">{selectedFile.filename}</code>
                 </h2>
+                <button
+                  type="button"
+                  className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-hover"
+                  onClick={() => setUiVisible(false)}
+                >
+                  View fullscreen
+                </button>
               </div>
             )}
             <iframe
