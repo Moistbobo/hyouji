@@ -6,6 +6,13 @@ import {
   GistFile,
 } from './gist.ts';
 import { injectAnchorShim, removeAnchorShim } from './anchorShim.ts';
+import {
+  loadHistory,
+  recordView,
+  removeFromHistory,
+  HistoryEntry,
+} from './history.ts';
+import HistoryModal from './HistoryModal.tsx';
 
 const DEFAULT_TITLE = 'hyouji — Preview HTML from GitHub Gists';
 
@@ -21,6 +28,8 @@ export default function App() {
   const [allowScripts, setAllowScripts] = useState(
     () => localStorage.getItem('hyouji-allow-scripts') === 'true'
   );
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -98,6 +107,13 @@ export default function App() {
       setInfo(
         `Loaded gist by ${ownerLogin} — ${htmlFiles.length} HTML file${htmlFiles.length === 1 ? '' : 's'} found.`
       );
+      setHistory(
+        recordView({
+          id: gistId,
+          ownerLogin,
+          filenames: htmlFiles.map((f) => f.filename),
+        })
+      );
       await loadFile(htmlFiles[0], ownerLogin);
     } catch (err) {
       setError(`Failed to load gist: ${(err as Error).message}`);
@@ -134,12 +150,39 @@ export default function App() {
     loadFile(file);
   }, [loadFile]);
 
+  const handleSelectHistory = useCallback((entry: HistoryEntry) => {
+    setHistoryOpen(false);
+    const gistUrl = `https://gist.github.com/${entry.ownerLogin}/${entry.id}`;
+    setUrl(gistUrl);
+    loadGist(gistUrl);
+  }, [loadGist]);
+
+  const handleDeleteHistory = useCallback((id: string) => {
+    setHistory(removeFromHistory(id));
+  }, []);
+
   const showUi = uiVisible || !selectedFile;
 
   return (
     <div
       className={`app flex min-h-screen flex-col ${showUi ? '' : 'preview-only'}`}
     >
+      {!selectedFile && (
+        <button
+          type="button"
+          onClick={() => setHistoryOpen(true)}
+          className="fixed top-4 left-4 z-50 inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-surface/65 px-4 text-sm font-semibold text-text opacity-80 backdrop-blur-sm transition-opacity hover:opacity-100 focus-visible:opacity-100"
+          aria-label="Open history"
+          title="History"
+        >
+          History
+          {history.length > 0 && (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-white">
+              {history.length}
+            </span>
+          )}
+        </button>
+      )}
       {showUi && (
         <header className="mb-8 text-center">
           <h1 className="m-0 text-4xl font-bold tracking-tight">
@@ -280,6 +323,14 @@ export default function App() {
           </p>
         </footer>
       )}
+
+      <HistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        entries={history}
+        onSelect={handleSelectHistory}
+        onDelete={handleDeleteHistory}
+      />
     </div>
   );
 }
