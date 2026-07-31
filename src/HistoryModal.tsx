@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { HistoryEntry } from './history.ts';
+import { useEscapeToClose } from './useEscapeToClose.ts';
 
 interface HistoryModalProps {
   open: boolean;
@@ -7,6 +8,7 @@ interface HistoryModalProps {
   entries: HistoryEntry[];
   onSelect: (entry: HistoryEntry) => void;
   onDelete: (id: string) => void;
+  onClearAll?: () => void;
 }
 
 function formatRelative(ts: number): string {
@@ -31,8 +33,12 @@ export default function HistoryModal({
   entries,
   onSelect,
   onDelete,
+  onClearAll,
 }: HistoryModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEscapeToClose(open, onClose, dialogRef);
 
   useEffect(() => {
     if (!open) return;
@@ -40,21 +46,12 @@ export default function HistoryModal({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-
     closeRef.current?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleKey);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -66,25 +63,39 @@ export default function HistoryModal({
       }}
     >
       <div
+        ref={dialogRef}
         className="flex max-h-[80vh] w-full max-w-md flex-col rounded-lg border border-border bg-surface shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="history-modal-title"
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
           <h2 id="history-modal-title" className="m-0 text-lg font-semibold">
             History
           </h2>
-          <button
-            ref={closeRef}
-            type="button"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-transparent text-text transition-colors hover:bg-surface-2"
-            onClick={onClose}
-            aria-label="Close history"
-            title="Close (Esc)"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            {onClearAll && entries.length > 0 && (
+              <button
+                type="button"
+                onClick={onClearAll}
+                className="inline-flex h-8 items-center rounded-md border border-transparent bg-transparent px-3 text-xs font-semibold text-text-muted transition-colors hover:border-error/40 hover:bg-error/10 hover:text-error focus-visible:border-error/40 focus-visible:bg-error/10 focus-visible:text-error focus-visible:outline-none"
+                aria-label={`Clear all ${entries.length} entries from history`}
+                title="Clear all"
+              >
+                Clear all
+              </button>
+            )}
+            <button
+              ref={closeRef}
+              type="button"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-transparent text-text transition-colors hover:bg-surface-2"
+              onClick={onClose}
+              aria-label="Close history"
+              title="Close (Esc)"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-2">

@@ -93,3 +93,8 @@ export function removeFromHistory(id: string): HistoryEntry[] {
   saveHistory(next);
   return next;
 }
+
+export function clearHistory(): HistoryEntry[] {
+  saveHistory([]);
+  return [];
+}
