@@ -10,9 +10,11 @@ import {
   loadHistory,
   recordView,
   removeFromHistory,
+  clearHistory,
   HistoryEntry,
 } from './history.ts';
 import HistoryModal from './HistoryModal.tsx';
+import ConfirmModal from './ConfirmModal.tsx';
 
 const DEFAULT_TITLE = 'hyouji — Preview HTML from GitHub Gists';
 
@@ -30,6 +32,7 @@ export default function App() {
   );
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -159,6 +162,11 @@ export default function App() {
 
   const handleDeleteHistory = useCallback((id: string) => {
     setHistory(removeFromHistory(id));
+  }, []);
+
+  const handleClearHistory = useCallback(() => {
+    setHistory(clearHistory());
+    setConfirmClearOpen(false);
   }, []);
 
   const showUi = uiVisible || !selectedFile;
@@ -330,6 +338,24 @@ export default function App() {
         entries={history}
         onSelect={handleSelectHistory}
         onDelete={handleDeleteHistory}
+        onClearAll={() => setConfirmClearOpen(true)}
+      />
+
+      <ConfirmModal
+        open={confirmClearOpen}
+        title="Clear history?"
+        message={
+          <>
+            This will remove all {history.length}{' '}
+            gist{history.length === 1 ? '' : 's'} from your local history. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Clear all"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={handleClearHistory}
+        onClose={() => setConfirmClearOpen(false)}
       />
     </div>
   );
